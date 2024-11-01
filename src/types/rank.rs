@@ -3,7 +3,7 @@ use crate::format_stacked_err;
 use std::ops::Add;
 use std::ops::Sub;
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(PartialEq, PartialOrd, Ord, Eq, Clone, Copy)]
 pub struct Rank {
     pub value: i32,
 }

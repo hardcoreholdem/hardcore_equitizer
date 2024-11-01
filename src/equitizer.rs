@@ -2,7 +2,7 @@ use crate::types::Suit;
 
 use super::hand_ranker::HandRanker;
 use super::types::Card;
-use super::types::Rank;
+use super::types::Range;
 use std::collections::HashMap;
 use std::io::{BufRead, Write};
 pub struct Equitizer<'a> {
@@ -51,16 +51,12 @@ impl<'a> Equitizer<'a> {
         Self { hand_ranker, cache }
     }
 
-    pub fn range_vs_range(
-        &mut self,
-        hero_range: &Vec<(Card, Card)>,
-        villain_range: &Vec<(Card, Card)>,
-    ) -> f64 {
+    pub fn range_vs_range(&mut self, hero_range: &Range, villain_range: &Range) -> f64 {
         let mut sum = 0.0;
         let mut cnt = 0.0;
 
-        for hero_hand in hero_range {
-            for villain_hand in villain_range {
+        for &hero_hand in &hero_range.combos {
+            for &villain_hand in &villain_range.combos {
                 if hero_hand.0 == villain_hand.0
                     || hero_hand.0 == villain_hand.1
                     || hero_hand.1 == villain_hand.0
@@ -69,7 +65,7 @@ impl<'a> Equitizer<'a> {
                     continue;
                 }
 
-                sum += self.hand_vs_hand(*hero_hand, *villain_hand);
+                sum += self.hand_vs_hand(hero_hand, villain_hand);
                 cnt += 1.0;
             }
         }
@@ -249,125 +245,23 @@ impl<'a> Equitizer<'a> {
         equity
     }
 
-    fn make_range(desc: &str) -> Vec<(Card, Card)> {
-        let mut range: Vec<(Card, Card)> = Vec::new();
-
-        for token in desc.split(',') {
-            if token.len() < 2 {
-                panic!("invalid range description: {}", desc);
-            }
-
-            let rank1 = Rank::parse(&token[0..1]).unwrap();
-            let rank2 = Rank::parse(&token[1..2]).unwrap();
-
-            match token.strip_suffix("+") {
-                Some(token) => match token.len() {
-                    2 => {
-                        if rank1 == rank2 {
-                            let bottom_rank = rank1;
-                            if bottom_rank == Rank::ACE {
-                                panic!("invalid range description: {}", desc);
-                            }
-                            for rank_value in bottom_rank.value..=Rank::VALUE_A {
-                                let rank = Rank::from_value(rank_value);
-                                for suit1_value in 0..4 {
-                                    for suit2_value in (suit1_value + 1)..4 {
-                                        range.push((
-                                            Card::from_rank_suit_value(rank.value, suit1_value),
-                                            Card::from_rank_suit_value(rank.value, suit2_value),
-                                        ));
-                                    }
-                                }
-                            }
-                        } else {
-                            // TODO: implement this
-                            panic!("invalid range description: {}", desc);
-                        }
-                    }
-                    3 => {
-                        // TODO: implement this
-                        panic!("invalid range description: {}", desc);
-                    }
-                    _ => panic!("invalid range description: {}", desc),
-                },
-                None => match token.len() {
-                    2 => {
-                        if rank1 == rank2 {
-                            let rank = rank1;
-                            for suit1_value in 0..4 {
-                                for suit2_value in (suit1_value + 1)..4 {
-                                    range.push((
-                                        Card::from_rank_suit_value(rank.value, suit1_value),
-                                        Card::from_rank_suit_value(rank.value, suit2_value),
-                                    ));
-                                }
-                            }
-                        } else {
-                            for suit1_value in 0..4 {
-                                for suit2_value in 0..4 {
-                                    range.push((
-                                        Card::from_rank_suit_value(rank1.value, suit1_value),
-                                        Card::from_rank_suit_value(rank2.value, suit2_value),
-                                    ));
-                                }
-                            }
-                        }
-                    }
-                    3 => match &token[2..3] {
-                        "s" => {
-                            if rank1 <= rank2 {
-                                panic!("invalid range description: {}", desc);
-                            }
-                            for suit_value in 0..4 {
-                                range.push((
-                                    Card::from_rank_suit_value(rank1.value, suit_value),
-                                    Card::from_rank_suit_value(rank2.value, suit_value),
-                                ));
-                            }
-                        }
-                        "o" => {
-                            if rank1 <= rank2 {
-                                panic!("invalid range description: {}", desc);
-                            }
-                            for suit1_value in 0..4 {
-                                for suit2_value in 0..4 {
-                                    if suit1_value == suit2_value {
-                                        continue;
-                                    }
-                                    range.push((
-                                        Card::from_rank_suit_value(rank1.value, suit1_value),
-                                        Card::from_rank_suit_value(rank2.value, suit2_value),
-                                    ));
-                                }
-                            }
-                        }
-                        _ => panic!("invalid range description: {}", desc),
-                    },
-                    _ => panic!("invalid range description: {}", desc),
-                },
-            }
-        }
-
-        range
-    }
-
     pub fn query_eq(&mut self, hero: &str, villain: &str) -> f64 {
-        let hero_range = Self::make_range(hero);
-        let villain_range = Self::make_range(villain);
+        let hero_range = Range::parse(hero);
+        let villain_range = Range::parse(villain);
         self.range_vs_range(&hero_range, &villain_range)
     }
 
     pub fn query_prob(&mut self, blocks: &str, range: &str) -> f64 {
         const C_50_2: f64 = 50.0 * 49.0 / 2.0;
 
-        let range = Self::make_range(range);
-        let blocks = Self::make_range(blocks);
+        let range = Range::parse(range);
+        let blocks = Range::parse(blocks);
 
         let mut res = Vec::new();
 
-        for blocker_hand in blocks {
+        for &blocker_hand in &blocks.combos {
             let mut cnt = 0;
-            for hand in &range {
+            for &hand in &range.combos {
                 if blocker_hand.0 != hand.0
                     && blocker_hand.0 != hand.1
                     && blocker_hand.1 != hand.0
