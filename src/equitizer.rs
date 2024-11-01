@@ -84,27 +84,99 @@ impl<'a> Equitizer<'a> {
         if villain.0 > villain.1 {
             std::mem::swap(&mut villain.0, &mut villain.1);
         }
-        if hero.0.suit() != Suit::CLUB {
-            let first_suit = hero.0.suit();
 
-            hero.0 = hero.0.with_suit(&Suit::CLUB);
-
-            match hero.1.suit() {
-                Suit::CLUB => hero.1 = hero.1.with_suit(&first_suit),
-                suit if suit == first_suit => hero.1 = hero.1.with_suit(&Suit::CLUB),
-                _ => {}
+        if hero.0.suit() == hero.1.suit() {
+            let hero_suit = hero.0.suit();
+            if villain.0.suit() == villain.1.suit() {
+                if hero.0.suit() == villain.0.suit() {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::CLUB);
+                    villain.0 = villain.0.with_suit(&Suit::CLUB);
+                    villain.1 = villain.1.with_suit(&Suit::CLUB);
+                } else {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::CLUB);
+                    villain.0 = villain.0.with_suit(&Suit::DIAMOND);
+                    villain.1 = villain.1.with_suit(&Suit::DIAMOND);
+                }
+            } else {
+                if hero_suit == villain.0.suit() {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::CLUB);
+                    villain.0 = villain.0.with_suit(&Suit::CLUB);
+                    villain.1 = villain.1.with_suit(&Suit::DIAMOND);
+                } else if hero_suit == villain.1.suit() {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::CLUB);
+                    villain.0 = villain.0.with_suit(&Suit::DIAMOND);
+                    villain.1 = villain.1.with_suit(&Suit::CLUB);
+                } else {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::CLUB);
+                    villain.0 = villain.0.with_suit(&Suit::DIAMOND);
+                    villain.1 = villain.1.with_suit(&Suit::HEART);
+                }
             }
-
-            match villain.0.suit() {
-                Suit::CLUB => villain.0 = villain.0.with_suit(&first_suit),
-                suit if suit == first_suit => villain.0 = villain.0.with_suit(&Suit::CLUB),
-                _ => {}
-            }
-
-            match villain.1.suit() {
-                Suit::CLUB => villain.1 = villain.1.with_suit(&first_suit),
-                suit if suit == first_suit => villain.1 = villain.1.with_suit(&Suit::CLUB),
-                _ => {}
+        } else {
+            if villain.0.suit() == villain.1.suit() {
+                let villain_suit = villain.0.suit();
+                if hero.0.suit() == villain_suit {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                    villain.0 = villain.0.with_suit(&Suit::CLUB);
+                    villain.1 = villain.1.with_suit(&Suit::CLUB);
+                } else if hero.1.suit() == villain_suit {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                    villain.0 = villain.0.with_suit(&Suit::DIAMOND);
+                    villain.1 = villain.1.with_suit(&Suit::DIAMOND);
+                } else {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                    villain.0 = villain.0.with_suit(&Suit::HEART);
+                    villain.1 = villain.1.with_suit(&Suit::HEART);
+                }
+            } else {
+                if hero.0.suit() == villain.0.suit() {
+                    if hero.1.suit() == villain.1.suit() {
+                        hero.0 = hero.0.with_suit(&Suit::CLUB);
+                        hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                        villain.0 = villain.0.with_suit(&Suit::CLUB);
+                        villain.1 = villain.1.with_suit(&Suit::DIAMOND);
+                    } else {
+                        hero.0 = hero.0.with_suit(&Suit::CLUB);
+                        hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                        villain.0 = villain.0.with_suit(&Suit::CLUB);
+                        villain.1 = villain.1.with_suit(&Suit::HEART);
+                    }
+                } else if hero.0.suit() == villain.1.suit() {
+                    if hero.1.suit() == villain.0.suit() {
+                        hero.0 = hero.0.with_suit(&Suit::CLUB);
+                        hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                        villain.0 = villain.0.with_suit(&Suit::DIAMOND);
+                        villain.1 = villain.1.with_suit(&Suit::CLUB);
+                    } else {
+                        hero.0 = hero.0.with_suit(&Suit::CLUB);
+                        hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                        villain.0 = villain.0.with_suit(&Suit::HEART);
+                        villain.1 = villain.1.with_suit(&Suit::CLUB);
+                    }
+                } else if hero.1.suit() == villain.0.suit() {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                    villain.0 = villain.0.with_suit(&Suit::DIAMOND);
+                    villain.1 = villain.1.with_suit(&Suit::HEART);
+                } else if hero.1.suit() == villain.1.suit() {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                    villain.0 = villain.0.with_suit(&Suit::HEART);
+                    villain.1 = villain.1.with_suit(&Suit::DIAMOND);
+                } else {
+                    hero.0 = hero.0.with_suit(&Suit::CLUB);
+                    hero.1 = hero.1.with_suit(&Suit::DIAMOND);
+                    villain.0 = villain.0.with_suit(&Suit::HEART);
+                    villain.1 = villain.1.with_suit(&Suit::SPADE);
+                }
             }
         }
 
