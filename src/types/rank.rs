@@ -33,7 +33,7 @@ impl ToString for Rank {
 }
 
 impl Rank {
-    pub fn new(value: i32) -> Rank {
+    pub fn from_value(value: i32) -> Rank {
         Rank { value }
     }
 
@@ -87,11 +87,15 @@ impl Rank {
     pub fn as_usize(&self) -> usize {
         self.value as usize
     }
-}
 
-pub const RANK_VALUE_A: i32 = 12;
-pub const RANK_VALUE_2: i32 = 0;
-pub const RANK_VALUE_3: i32 = 1;
-pub const RANK_VALUE_4: i32 = 2;
-pub const RANK_VALUE_5: i32 = 3;
-pub const RANK_VALUE_6: i32 = 4;
+    pub const VALUE_A: i32 = 12;
+    pub const VALUE_6: i32 = 4;
+    pub const VALUE_5: i32 = 3;
+    pub const VALUE_4: i32 = 2;
+    pub const VALUE_3: i32 = 1;
+    pub const VALUE_2: i32 = 0;
+
+    pub const ACE: Rank = Rank {
+        value: Self::VALUE_A,
+    };
+}

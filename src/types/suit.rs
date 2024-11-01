@@ -18,22 +18,17 @@ impl ToString for Suit {
     }
 }
 
-pub const SPADE: Suit = Suit { value: 3 };
-pub const HEART: Suit = Suit { value: 2 };
-pub const DIAMOND: Suit = Suit { value: 1 };
-pub const CLUB: Suit = Suit { value: 0 };
-
 impl Suit {
-    pub fn new(value: i32) -> Suit {
+    pub fn from_value(value: i32) -> Suit {
         Suit { value }
     }
 
     pub fn parse(abbr: char) -> Result<Self, StackedError> {
         match abbr {
-            's' => return Ok(SPADE),
-            'h' => return Ok(HEART),
-            'd' => return Ok(DIAMOND),
-            'c' => return Ok(CLUB),
+            's' => return Ok(Self::SPADE),
+            'h' => return Ok(Self::HEART),
+            'd' => return Ok(Self::DIAMOND),
+            'c' => return Ok(Self::CLUB),
             _ => {
                 return format_stacked_err!(
                     "Suit::parse({}:{}) invalid suit: {:?}",
@@ -52,4 +47,9 @@ impl Suit {
     pub fn as_usize(&self) -> usize {
         self.value as usize
     }
+
+    pub const SPADE: Suit = Suit { value: 3 };
+    pub const HEART: Suit = Suit { value: 2 };
+    pub const DIAMOND: Suit = Suit { value: 1 };
+    pub const CLUB: Suit = Suit { value: 0 };
 }

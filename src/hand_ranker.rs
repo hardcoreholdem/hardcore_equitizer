@@ -1,18 +1,8 @@
-use permutohedron::LexicalPermutation;
-
 use super::types::Card;
 use super::types::HandRank;
 use super::types::Rank;
-use super::types::CLUB;
-use super::types::DIAMOND;
-use super::types::HEART;
-use super::types::RANK_VALUE_2;
-use super::types::RANK_VALUE_3;
-use super::types::RANK_VALUE_4;
-use super::types::RANK_VALUE_5;
-use super::types::RANK_VALUE_6;
-use super::types::RANK_VALUE_A;
-use super::types::SPADE;
+use super::types::Suit;
+use permutohedron::LexicalPermutation;
 use std::cmp::max;
 use std::fs::File;
 use std::io::BufReader;
@@ -202,19 +192,19 @@ impl HandRanker {
                         let suit_cnt = SUIT_CNT_TABLE[suit_cnt_hash];
 
                         if c >= 5 {
-                            if suit_cnt != CLUB.as_usize() + 1 {
+                            if suit_cnt != Suit::CLUB.as_usize() + 1 {
                                 panic!("suited7 error");
                             }
                         } else if d >= 5 {
-                            if suit_cnt != DIAMOND.as_usize() + 1 {
+                            if suit_cnt != Suit::DIAMOND.as_usize() + 1 {
                                 panic!("suited7 error");
                             }
                         } else if h >= 5 {
-                            if suit_cnt != HEART.as_usize() + 1 {
+                            if suit_cnt != Suit::HEART.as_usize() + 1 {
                                 panic!("suited7 error");
                             }
                         } else if s >= 5 {
-                            if suit_cnt != SPADE.as_usize() + 1 {
+                            if suit_cnt != Suit::SPADE.as_usize() + 1 {
                                 panic!("suited7 error");
                             }
                         } else {
@@ -330,13 +320,13 @@ impl HandRanker {
                 hand_rank,
                 offsuited_details,
                 need_flush,
-                RANK_VALUE_2,
-                RANK_VALUE_3,
-                RANK_VALUE_4,
-                RANK_VALUE_5,
-                RANK_VALUE_A,
+                Rank::VALUE_2,
+                Rank::VALUE_3,
+                Rank::VALUE_4,
+                Rank::VALUE_5,
+                Rank::VALUE_A,
             );
-            for r_value in RANK_VALUE_6..=RANK_VALUE_A {
+            for r_value in Rank::VALUE_6..=Rank::VALUE_A {
                 self.do_process(
                     hand_rank,
                     offsuited_details,
@@ -349,15 +339,15 @@ impl HandRanker {
                 );
             }
         } else {
-            for r4_value in RANK_VALUE_2..=RANK_VALUE_A {
-                for r3_value in RANK_VALUE_2..r4_value {
-                    for r2_value in RANK_VALUE_2..r3_value {
-                        for r1_value in RANK_VALUE_2..r2_value {
-                            for r0_value in RANK_VALUE_2..r1_value {
+            for r4_value in Rank::VALUE_2..=Rank::VALUE_A {
+                for r3_value in Rank::VALUE_2..r4_value {
+                    for r2_value in Rank::VALUE_2..r3_value {
+                        for r1_value in Rank::VALUE_2..r2_value {
+                            for r0_value in Rank::VALUE_2..r1_value {
                                 let mut is_straight = false;
                                 if r3_value - r0_value == 3 {
                                     if r4_value == r3_value + 1
-                                        || (r4_value == RANK_VALUE_A && r0_value == RANK_VALUE_2)
+                                        || (r4_value == Rank::VALUE_A && r0_value == Rank::VALUE_2)
                                     {
                                         is_straight = true;
                                     }
@@ -401,18 +391,18 @@ impl HandRanker {
 
         {
             // one pair
-            for rr_value in RANK_VALUE_2..=RANK_VALUE_A {
-                for r2_value in RANK_VALUE_2..=RANK_VALUE_A {
+            for rr_value in Rank::VALUE_2..=Rank::VALUE_A {
+                for r2_value in Rank::VALUE_2..=Rank::VALUE_A {
                     if r2_value == rr_value {
                         continue;
                     }
 
-                    for r1_value in RANK_VALUE_2..r2_value {
+                    for r1_value in Rank::VALUE_2..r2_value {
                         if r1_value == rr_value {
                             continue;
                         }
 
-                        for r0_value in RANK_VALUE_2..r1_value {
+                        for r0_value in Rank::VALUE_2..r1_value {
                             if r0_value == rr_value {
                                 continue;
                             }
@@ -435,9 +425,9 @@ impl HandRanker {
 
         {
             // two pair
-            for rr1 in RANK_VALUE_2..=RANK_VALUE_A {
-                for rr0 in RANK_VALUE_2..rr1 {
-                    for r in RANK_VALUE_2..=RANK_VALUE_A {
+            for rr1 in Rank::VALUE_2..=Rank::VALUE_A {
+                for rr0 in Rank::VALUE_2..rr1 {
+                    for r in Rank::VALUE_2..=Rank::VALUE_A {
                         if r == rr1 || r == rr0 {
                             continue;
                         }
@@ -458,13 +448,13 @@ impl HandRanker {
 
         {
             // 三条
-            for rrr_value in RANK_VALUE_2..=RANK_VALUE_A {
-                for r2_value in RANK_VALUE_2..=RANK_VALUE_A {
+            for rrr_value in Rank::VALUE_2..=Rank::VALUE_A {
+                for r2_value in Rank::VALUE_2..=Rank::VALUE_A {
                     if r2_value == rrr_value {
                         continue;
                     }
 
-                    for r1_value in RANK_VALUE_2..r2_value {
+                    for r1_value in Rank::VALUE_2..r2_value {
                         if r1_value == rrr_value {
                             continue;
                         }
@@ -500,9 +490,9 @@ impl HandRanker {
         );
 
         {
-            // 葫芦
-            for rrr_value in RANK_VALUE_2..=RANK_VALUE_A {
-                for rr_value in RANK_VALUE_2..=RANK_VALUE_A {
+            // full house
+            for rrr_value in Rank::VALUE_2..=Rank::VALUE_A {
+                for rr_value in Rank::VALUE_2..=Rank::VALUE_A {
                     if rr_value == rrr_value {
                         continue;
                     }
@@ -516,8 +506,8 @@ impl HandRanker {
 
         {
             // 四条
-            for rrrr in RANK_VALUE_2..=RANK_VALUE_A {
-                for r in RANK_VALUE_2..=RANK_VALUE_A {
+            for rrrr in Rank::VALUE_2..=Rank::VALUE_A {
+                for r in Rank::VALUE_2..=Rank::VALUE_A {
                     if r == rrrr {
                         continue;
                     }
@@ -535,12 +525,6 @@ impl HandRanker {
             panic!("hand_rank != NUM");
         }
 
-        println!(
-            "finished process 同花顺, hand_rank={:?}, offsuited_details.len(): {}",
-            hand_rank,
-            offsuited_details.len()
-        );
-
         for s in (0 as usize)..((1 << 13) as usize) {
             for i in 0..13 {
                 if test_bit(s, i) {
@@ -554,8 +538,8 @@ impl HandRanker {
 
         for (r01234_values, hand_rank) in offsuited_details {
             println!("r01234={:?}", r01234_values);
-            for r6_value in RANK_VALUE_2..=RANK_VALUE_A {
-                for r5_value in RANK_VALUE_2..=r6_value {
+            for r6_value in Rank::VALUE_2..=Rank::VALUE_A {
+                for r5_value in Rank::VALUE_2..=r6_value {
                     let mut r0123456_values = [
                         r01234_values[0],
                         r01234_values[1],

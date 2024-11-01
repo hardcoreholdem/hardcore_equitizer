@@ -48,11 +48,11 @@ impl Card {
     }
 
     pub fn suit(self) -> Suit {
-        Suit::new(self.value & 0b11)
+        Suit::from_value(self.value & 0b11)
     }
 
     pub fn rank(self) -> Rank {
-        Rank::new(self.value >> 2)
+        Rank::from_value(self.value >> 2)
     }
 
     pub fn from_value(value: i32) -> Self {
