@@ -2,6 +2,8 @@
 name = "hardcore_equitizer"
 version = "0.1.0"
 edition = "2021"
+description = "A tool to calculate the equity of a poker hand against a range of hands."
+license = "MIT"
 
 [dependencies]
 permutohedron = "0.2.4"
