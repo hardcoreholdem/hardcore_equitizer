@@ -1,0 +1,7 @@
+[package]
+name = "hardcore_equitizer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+permutohedron = "0.2.4"
