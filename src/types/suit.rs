@@ -1,7 +1,7 @@
 use super::stacked_error::StackedError;
 use crate::format_stacked_err;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Suit {
     pub value: i32,
 }

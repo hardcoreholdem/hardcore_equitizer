@@ -66,4 +66,8 @@ impl Card {
     pub fn from_rank_suit_value(rank_value: i32, suit_value: i32) -> Self {
         Self::from_value(rank_value << 2 | suit_value)
     }
+
+    pub fn with_suit(self, suit: &Suit) -> Self {
+        Self::from_value(self.value & !0b11 | suit.value)
+    }
 }

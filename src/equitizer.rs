@@ -1,3 +1,5 @@
+use crate::types::Suit;
+
 use super::hand_ranker::HandRanker;
 use super::types::Card;
 use super::types::Rank;
@@ -82,6 +84,30 @@ impl<'a> Equitizer<'a> {
         if villain.0 > villain.1 {
             std::mem::swap(&mut villain.0, &mut villain.1);
         }
+        if hero.0.suit() != Suit::CLUB {
+            let first_suit = hero.0.suit();
+
+            hero.0 = hero.0.with_suit(&Suit::CLUB);
+
+            match hero.1.suit() {
+                Suit::CLUB => hero.1 = hero.1.with_suit(&first_suit),
+                suit if suit == first_suit => hero.1 = hero.1.with_suit(&Suit::CLUB),
+                _ => {}
+            }
+
+            match villain.0.suit() {
+                Suit::CLUB => villain.0 = villain.0.with_suit(&first_suit),
+                suit if suit == first_suit => villain.0 = villain.0.with_suit(&Suit::CLUB),
+                _ => {}
+            }
+
+            match villain.1.suit() {
+                Suit::CLUB => villain.1 = villain.1.with_suit(&first_suit),
+                suit if suit == first_suit => villain.1 = villain.1.with_suit(&Suit::CLUB),
+                _ => {}
+            }
+        }
+
         let key = (hero.0, hero.1, villain.0, villain.1);
         match self.cache.get(&key) {
             Some(equity) => return *equity,
