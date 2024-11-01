@@ -95,29 +95,3 @@ pub const RANK_VALUE_3: i32 = 1;
 pub const RANK_VALUE_4: i32 = 2;
 pub const RANK_VALUE_5: i32 = 3;
 pub const RANK_VALUE_6: i32 = 4;
-
-pub const RANK_A: Rank = Rank {
-    value: RANK_VALUE_A,
-};
-pub const RANK_K: Rank = Rank { value: 11 };
-pub const RANK_Q: Rank = Rank { value: 10 };
-pub const RANK_J: Rank = Rank { value: 9 };
-pub const RANK_T: Rank = Rank { value: 8 };
-pub const RANK_9: Rank = Rank { value: 7 };
-pub const RANK_8: Rank = Rank { value: 6 };
-pub const RANK_7: Rank = Rank { value: 5 };
-pub const RANK_6: Rank = Rank {
-    value: RANK_VALUE_6,
-};
-pub const RANK_5: Rank = Rank {
-    value: RANK_VALUE_5,
-};
-pub const RANK_4: Rank = Rank {
-    value: RANK_VALUE_4,
-};
-pub const RANK_3: Rank = Rank {
-    value: RANK_VALUE_3,
-};
-pub const RANK_2: Rank = Rank {
-    value: RANK_VALUE_2,
-};
