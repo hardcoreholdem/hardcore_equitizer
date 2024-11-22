@@ -295,4 +295,10 @@ impl Range {
             }
         }
     }
+
+    pub fn is_disjoint(&self, other: &Self) -> bool {
+        self.combos
+            .iter()
+            .all(|combo| !other.combos.contains(combo))
+    }
 }
