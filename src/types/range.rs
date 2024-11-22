@@ -65,8 +65,51 @@ impl Range {
                 }
             },
             3 => {
-                // TODO: implement this
-                panic!("invalid range token: {}", token);
+                match rank1.cmp(&rank2) {
+                    Ordering::Less => {
+                        panic!("invalid range token: {}", token);
+                    }
+                    Ordering::Equal => {
+                        panic!("invalid range token: {}", token);
+                    }
+                    Ordering::Greater => {}
+                }
+
+                match token.as_bytes()[2] {
+                    b's' => {
+                        for cur_rank_value in rank2.value..=Rank::VALUE_A {
+                            if cur_rank_value == rank1.value {
+                                continue;
+                            }
+                            for suit_value in 0..4 {
+                                combos.push((
+                                    Card::from_rank_suit_value(rank1.value, suit_value),
+                                    Card::from_rank_suit_value(cur_rank_value, suit_value),
+                                ));
+                            }
+                        }
+                    }
+                    b'o' => {
+                        for cur_rank_value in rank2.value..=Rank::VALUE_A {
+                            if cur_rank_value == rank1.value {
+                                continue;
+                            }
+                            for suit1_value in 0..4 {
+                                for suit2_value in 0..4 {
+                                    if suit1_value == suit2_value {
+                                        continue;
+                                    }
+
+                                    combos.push((
+                                        Card::from_rank_suit_value(rank1.value, suit1_value),
+                                        Card::from_rank_suit_value(cur_rank_value, suit2_value),
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                    _ => panic!("invalid range token: {}", token),
+                }
             }
             _ => panic!("invalid range token: {}", token),
         }
@@ -172,18 +215,18 @@ impl Range {
                     if from_rank1 != to_rank1 {
                         panic!("invalid range tokens: {}-{}", from_token, to_token);
                     }
-                    let rank1 = from_rank1;
+                    let left_rank = from_rank1;
 
                     if from_rank2 - to_rank2 <= 1 {
                         panic!("invalid range tokens: {}-{}", from_token, to_token);
                     }
 
-                    for cur_rank2_value in to_rank2.value..=from_rank2.value {
-                        for suit1_value in 0..4 {
-                            for suit2_value in 0..4 {
+                    for right_rank_value in to_rank2.value..=from_rank2.value {
+                        for left_suit_value in 0..4 {
+                            for right_suit_value in 0..4 {
                                 combos.push((
-                                    Card::from_rank_suit_value(rank1.value, suit1_value),
-                                    Card::from_rank_suit_value(cur_rank2_value, suit2_value),
+                                    Card::from_rank_suit_value(left_rank.value, left_suit_value),
+                                    Card::from_rank_suit_value(right_rank_value, right_suit_value),
                                 ));
                             }
                         }
