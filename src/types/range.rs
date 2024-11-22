@@ -6,6 +6,12 @@ pub struct Range {
     pub combos: Vec<(Card, Card)>,
 }
 
+impl From<&str> for Range {
+    fn from(desc: &str) -> Self {
+        Self::parse(desc)
+    }
+}
+
 impl Range {
     pub fn parse(desc: &str) -> Self {
         let mut combos: Vec<(Card, Card)> = Vec::new();
