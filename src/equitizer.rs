@@ -3,6 +3,7 @@ use crate::types::Suit;
 use super::hand_ranker::HandRanker;
 use super::types::Card;
 use super::types::Range;
+use super::types::StackedError;
 use std::collections::HashMap;
 use std::io::{BufRead, Write};
 pub struct Equitizer<'a> {
@@ -13,7 +14,7 @@ pub struct Equitizer<'a> {
 impl<'a> Equitizer<'a> {
     const CACHE_FILENAME: &'static str = "data/equitizer_cache.txt";
 
-    pub fn new(hand_ranker: &'a HandRanker) -> Self {
+    pub fn new(hand_ranker: &'a HandRanker) -> Result<Self, StackedError> {
         let mut cache = HashMap::new();
 
         match std::fs::File::open(Self::CACHE_FILENAME) {
@@ -22,11 +23,17 @@ impl<'a> Equitizer<'a> {
                     let line = line.unwrap();
                     let parts = line.split_whitespace().collect::<Vec<&str>>();
                     if parts.len() != 3 {
-                        panic!("Invalid line in cache file: {}", line);
+                        return Err(StackedError::new(format!(
+                            "Invalid line in cache file: {}",
+                            line
+                        )));
                     }
                     let h1 = parts[0];
                     if h1.len() != 4 {
-                        panic!("Invalid line in cache file: {}", line);
+                        return Err(StackedError::new(format!(
+                            "Invalid line in cache file: {}",
+                            line
+                        )));
                     }
                     let c1 = Card::parse(&h1[0..2]).unwrap();
                     let c2 = Card::parse(&h1[2..4]).unwrap();
@@ -48,7 +55,7 @@ impl<'a> Equitizer<'a> {
             }
         }
 
-        Self { hand_ranker, cache }
+        Ok(Self { hand_ranker, cache })
     }
 
     pub fn range_vs_range(&mut self, hero_range: &Range, villain_range: &Range) -> f64 {
@@ -246,16 +253,16 @@ impl<'a> Equitizer<'a> {
     }
 
     pub fn query_eq(&mut self, hero: &str, villain: &str) -> f64 {
-        let hero_range = Range::parse(hero);
-        let villain_range = Range::parse(villain);
+        let hero_range = Range::parse(hero).unwrap();
+        let villain_range = Range::parse(villain).unwrap();
         self.range_vs_range(&hero_range, &villain_range)
     }
 
     pub fn query_prob(&mut self, blocks: &str, range: &str) -> f64 {
         const C_50_2: f64 = 50.0 * 49.0 / 2.0;
 
-        let range = Range::parse(range);
-        let blocks = Range::parse(blocks);
+        let range = Range::parse(range).unwrap();
+        let blocks = Range::parse(blocks).unwrap();
 
         let mut res = Vec::new();
 

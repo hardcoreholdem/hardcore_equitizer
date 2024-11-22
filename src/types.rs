@@ -9,4 +9,5 @@ pub use card::Card;
 pub use hand_rank::HandRank;
 pub use range::Range;
 pub use rank::Rank;
+pub use stacked_error::StackedError;
 pub use suit::Suit;
