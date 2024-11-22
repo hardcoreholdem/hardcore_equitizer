@@ -258,6 +258,44 @@ impl<'a> Equitizer<'a> {
         self.range_vs_range(&hero_range, &villain_range)
     }
 
+    pub fn query_sub_prob(&mut self, blocks: &Range, sub_range: &Range, full_range: &Range) -> f64 {
+        let mut nums = Vec::new();
+
+        for hand in &sub_range.combos {
+            if !full_range.combos.contains(hand) {
+                panic!("Hand not in full range");
+            }
+        }
+
+        for &blocker_hand in &blocks.combos {
+            let mut cnt = 0;
+            for &hand in &sub_range.combos {
+                if blocker_hand.0 != hand.0
+                    && blocker_hand.0 != hand.1
+                    && blocker_hand.1 != hand.0
+                    && blocker_hand.1 != hand.1
+                {
+                    cnt += 1;
+                }
+            }
+            nums.push(cnt);
+        }
+
+        if nums.len() == 0 {
+            panic!("No combos found");
+        }
+
+        let first_num = nums[0].clone();
+
+        for x in &nums {
+            if *x != first_num {
+                panic!("Inconsistent number of combos");
+            }
+        }
+
+        first_num as f64 / full_range.combos.len() as f64
+    }
+
     pub fn query_prob(&mut self, blocks: &str, range: &str) -> f64 {
         const C_50_2: f64 = 50.0 * 49.0 / 2.0;
 

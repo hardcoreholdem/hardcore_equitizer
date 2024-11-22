@@ -1,6 +1,6 @@
 [package]
 name = "hardcore_equitizer"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2021"
 description = "A tool to calculate the equity of a poker hand against a range of hands."
 license = "MIT"
