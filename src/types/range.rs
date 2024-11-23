@@ -13,6 +13,12 @@ impl From<&str> for Range {
     }
 }
 
+impl From<&String> for Range {
+    fn from(desc: &String) -> Self {
+        Self::parse(desc).unwrap()
+    }
+}
+
 impl Range {
     pub fn parse(desc: &str) -> Result<Self, StackedError> {
         let mut combos: Vec<(Card, Card)> = Vec::new();

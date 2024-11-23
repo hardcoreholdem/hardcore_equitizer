@@ -252,10 +252,8 @@ impl<'a> Equitizer<'a> {
         equity
     }
 
-    pub fn query_eq(&mut self, hero: &str, villain: &str) -> f64 {
-        let hero_range = Range::parse(hero).unwrap();
-        let villain_range = Range::parse(villain).unwrap();
-        self.range_vs_range(&hero_range, &villain_range)
+    pub fn query_eq(&mut self, hero: &Range, villain: &Range) -> f64 {
+        self.range_vs_range(&hero, &villain)
     }
 
     pub fn query_sub_prob(&mut self, blocks: &Range, sub_range: &Range, full_range: &Range) -> f64 {
@@ -335,8 +333,20 @@ impl<'a> Equitizer<'a> {
 
     pub fn query_prob_and_eq(&mut self, lhs: &str, rhs: &str) -> (f64, f64) {
         let prob = self.query_prob(lhs, rhs);
-        let eq = self.query_eq(lhs, rhs);
+        let eq = self.query_eq(&lhs.into(), &rhs.into());
 
         (prob, eq)
+    }
+
+    pub fn query_sub_prob_and_eq(
+        &mut self,
+        lhs: &Range,
+        rhs: &Range,
+        full_rhs: &Range,
+    ) -> (f64, f64) {
+        let sub_prob = self.query_sub_prob(lhs, rhs, full_rhs);
+        let eq = self.query_eq(lhs, rhs);
+
+        (sub_prob, eq)
     }
 }
