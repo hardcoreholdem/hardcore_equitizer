@@ -6,7 +6,8 @@ use std::fmt;
 
 use super::stacked_error::StackedError;
 
-#[derive(PartialEq, Copy, Clone, Hash, Eq, PartialOrd)]
+#[derive(PartialEq, Copy, Clone, Hash, Eq, PartialOrd, Ord)]
+// TODO: enum
 pub struct Card {
     value: i32, // rank << 2 | suit
 }

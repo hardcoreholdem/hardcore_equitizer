@@ -2,6 +2,8 @@ use crate::types::Suit;
 
 use super::hand_ranker::HandRanker;
 use super::types::Card;
+use super::types::Combo;
+use super::types::PureRange;
 use super::types::Range;
 use super::types::StackedError;
 use std::collections::HashMap;
@@ -58,36 +60,27 @@ impl<'a> Equitizer<'a> {
         Ok(Self { hand_ranker, cache })
     }
 
-    pub fn range_vs_range(&mut self, hero_range: &Range, villain_range: &Range) -> f64 {
-        let mut sum = 0.0;
-        let mut cnt = 0.0;
+    pub fn range_vs_range(&mut self, lhs: &impl Range, rhs: &impl Range) -> f64 {
+        let mut sum_eq = 0.0;
+        let mut sum_weights = 0.0;
 
-        for &hero_hand in &hero_range.combos {
-            for &villain_hand in &villain_range.combos {
-                if hero_hand.0 == villain_hand.0
-                    || hero_hand.0 == villain_hand.1
-                    || hero_hand.1 == villain_hand.0
-                    || hero_hand.1 == villain_hand.1
-                {
+        for lhs_weighted_combo in lhs.iter_weighted_combos() {
+            for rhs_weighted_combo in rhs.iter_weighted_combos() {
+                if lhs_weighted_combo.combo == rhs_weighted_combo.combo {
                     continue;
                 }
 
-                sum += self.hand_vs_hand(hero_hand, villain_hand);
-                cnt += 1.0;
+                let weight = lhs_weighted_combo.weight * rhs_weighted_combo.weight;
+                sum_eq +=
+                    self.hand_vs_hand(lhs_weighted_combo.combo, rhs_weighted_combo.combo) * weight;
+                sum_weights += weight;
             }
         }
 
-        sum / cnt
+        sum_eq / sum_weights
     }
 
-    pub fn hand_vs_hand(&mut self, mut hero: (Card, Card), mut villain: (Card, Card)) -> f64 {
-        if hero.0 > hero.1 {
-            std::mem::swap(&mut hero.0, &mut hero.1);
-        }
-        if villain.0 > villain.1 {
-            std::mem::swap(&mut villain.0, &mut villain.1);
-        }
-
+    pub fn hand_vs_hand(&mut self, mut hero: Combo, mut villain: Combo) -> f64 {
         if hero.0.suit() == hero.1.suit() {
             let hero_suit = hero.0.suit();
             if villain.0.suit() == villain.1.suit() {
@@ -189,7 +182,7 @@ impl<'a> Equitizer<'a> {
             None => {}
         };
 
-        let equity = self.calc_hand_vs_hand(hero, villain);
+        let equity = self.calc_combo_vs_combo(hero, villain);
         self.cache.insert(key, equity);
 
         std::fs::OpenOptions::new()
@@ -209,14 +202,14 @@ impl<'a> Equitizer<'a> {
         equity
     }
 
-    pub fn calc_hand_vs_hand(&mut self, hero: (Card, Card), villain: (Card, Card)) -> f64 {
+    pub fn calc_combo_vs_combo(&mut self, lhs: Combo, rhs: Combo) -> f64 {
         let mut win = 0;
         let mut lose = 0;
         let mut tie = 0;
 
         let deck = (0..52)
             .map(|c| Card::from_value(c))
-            .filter(|&c| c != hero.0 && c != hero.1 && c != villain.0 && c != villain.1)
+            .filter(|&c| c != lhs.0 && c != lhs.1 && c != rhs.0 && c != rhs.1)
             .collect::<Vec<_>>();
 
         for i4 in 0..deck.len() {
@@ -226,11 +219,10 @@ impl<'a> Equitizer<'a> {
                         for i0 in 0..i1 {
                             let board = [deck[i0], deck[i1], deck[i2], deck[i3], deck[i4]];
                             let hero = [
-                                hero.0, hero.1, board[0], board[1], board[2], board[3], board[4],
+                                lhs.0, lhs.1, board[0], board[1], board[2], board[3], board[4],
                             ];
                             let villain = [
-                                villain.0, villain.1, board[0], board[1], board[2], board[3],
-                                board[4],
+                                rhs.0, rhs.1, board[0], board[1], board[2], board[3], board[4],
                             ];
 
                             let hero_hand_rank = self.hand_ranker.get7(hero);
@@ -252,68 +244,45 @@ impl<'a> Equitizer<'a> {
         equity
     }
 
-    pub fn query_eq(&mut self, hero: &Range, villain: &Range) -> f64 {
-        self.range_vs_range(&hero, &villain)
+    pub fn query_eq(&mut self, lhs: &impl Range, rhs: &impl Range) -> f64 {
+        self.range_vs_range(lhs, rhs)
     }
 
-    pub fn query_sub_prob(&mut self, blocks: &Range, sub_range: &Range, full_range: &Range) -> f64 {
-        let mut nums = Vec::new();
+    pub fn query_sub_prob(
+        &mut self,
+        blockers: &PureRange,
+        sub_rhs: &impl Range,
+        full_rhs: &impl Range,
+    ) -> f64 {
+        let mut res = Vec::new();
 
-        for hand in &sub_range.combos {
-            if !full_range.combos.contains(hand) {
+        for sub_combo in sub_rhs.iter_combos() {
+            if !full_rhs
+                .iter_combos()
+                .any(|full_combo| sub_combo == full_combo)
+            {
                 panic!("Hand not in full range");
             }
         }
 
-        for &blocker_hand in &blocks.combos {
-            let mut cnt = 0;
-            for &hand in &sub_range.combos {
-                if blocker_hand.0 != hand.0
-                    && blocker_hand.0 != hand.1
-                    && blocker_hand.1 != hand.0
-                    && blocker_hand.1 != hand.1
-                {
-                    cnt += 1;
+        for &blocker_combo in &blockers.combos {
+            let mut total_sub_weights = 0.0;
+            for sub_weighted_combo in sub_rhs.iter_weighted_combos() {
+                if blocker_combo == sub_weighted_combo.combo {
+                    continue;
                 }
+                total_sub_weights += sub_weighted_combo.weight;
             }
-            nums.push(cnt);
-        }
 
-        if nums.len() == 0 {
-            panic!("No combos found");
-        }
-
-        let first_num = nums[0].clone();
-
-        for x in &nums {
-            if *x != first_num {
-                panic!("Inconsistent number of combos");
-            }
-        }
-
-        first_num as f64 / full_range.combos.len() as f64
-    }
-
-    pub fn query_prob(&mut self, blocks: &str, range: &str) -> f64 {
-        const C_50_2: f64 = 50.0 * 49.0 / 2.0;
-
-        let range = Range::parse(range).unwrap();
-        let blocks = Range::parse(blocks).unwrap();
-
-        let mut res = Vec::new();
-
-        for &blocker_hand in &blocks.combos {
-            let mut cnt = 0;
-            for &hand in &range.combos {
-                if blocker_hand.0 != hand.0
-                    && blocker_hand.0 != hand.1
-                    && blocker_hand.1 != hand.0
-                    && blocker_hand.1 != hand.1
-                {
-                    cnt += 1;
+            let mut total_weights = 0.0;
+            for full_weighted_combo in full_rhs.iter_weighted_combos() {
+                if blocker_combo == full_weighted_combo.combo {
+                    continue;
                 }
+                total_weights += full_weighted_combo.weight;
             }
-            res.push(cnt as f64 / C_50_2);
+
+            res.push(total_sub_weights / total_weights);
         }
 
         if res.len() == 0 {
@@ -331,18 +300,50 @@ impl<'a> Equitizer<'a> {
         first_res
     }
 
-    pub fn query_prob_and_eq(&mut self, lhs: &str, rhs: &str) -> (f64, f64) {
+    pub fn query_prob(&mut self, blocks: &PureRange, range: &impl Range) -> f64 {
+        const C_50_2: f64 = 50.0 * 49.0 / 2.0;
+
+        let mut res = Vec::new();
+
+        for &blocker_combo in &blocks.combos {
+            let mut sum_weights = 0.0;
+            for weighted_combo in range.iter_weighted_combos() {
+                if blocker_combo == weighted_combo.combo {
+                    continue;
+                }
+
+                sum_weights += weighted_combo.weight;
+            }
+            res.push(sum_weights / C_50_2);
+        }
+
+        if res.len() == 0 {
+            panic!("No combos found");
+        }
+
+        let first_res = res[0].clone();
+
+        for x in &res {
+            if *x != first_res {
+                panic!("Inconsistent number of combos");
+            }
+        }
+
+        first_res
+    }
+
+    pub fn query_prob_and_eq(&mut self, lhs: &PureRange, rhs: &impl Range) -> (f64, f64) {
         let prob = self.query_prob(lhs, rhs);
-        let eq = self.query_eq(&lhs.into(), &rhs.into());
+        let eq = self.query_eq(lhs, rhs);
 
         (prob, eq)
     }
 
     pub fn query_sub_prob_and_eq(
         &mut self,
-        lhs: &Range,
-        rhs: &Range,
-        full_rhs: &Range,
+        lhs: &PureRange,
+        rhs: &impl Range,
+        full_rhs: &impl Range,
     ) -> (f64, f64) {
         let sub_prob = self.query_sub_prob(lhs, rhs, full_rhs);
         let eq = self.query_eq(lhs, rhs);
