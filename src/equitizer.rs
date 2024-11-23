@@ -66,7 +66,10 @@ impl<'a> Equitizer<'a> {
 
         for lhs_weighted_combo in lhs.iter_weighted_combos() {
             for rhs_weighted_combo in rhs.iter_weighted_combos() {
-                if lhs_weighted_combo.combo == rhs_weighted_combo.combo {
+                if lhs_weighted_combo
+                    .combo
+                    .intersects(&rhs_weighted_combo.combo)
+                {
                     continue;
                 }
 
@@ -268,7 +271,7 @@ impl<'a> Equitizer<'a> {
         for &blocker_combo in &blockers.combos {
             let mut total_sub_weights = 0.0;
             for sub_weighted_combo in sub_rhs.iter_weighted_combos() {
-                if blocker_combo == sub_weighted_combo.combo {
+                if blocker_combo.intersects(&sub_weighted_combo.combo) {
                     continue;
                 }
                 total_sub_weights += sub_weighted_combo.weight;
@@ -276,7 +279,7 @@ impl<'a> Equitizer<'a> {
 
             let mut total_weights = 0.0;
             for full_weighted_combo in full_rhs.iter_weighted_combos() {
-                if blocker_combo == full_weighted_combo.combo {
+                if blocker_combo.intersects(&full_weighted_combo.combo) {
                     continue;
                 }
                 total_weights += full_weighted_combo.weight;
@@ -308,7 +311,7 @@ impl<'a> Equitizer<'a> {
         for &blocker_combo in &blockers.combos {
             let mut sum_weights = 0.0;
             for weighted_combo in range.iter_weighted_combos() {
-                if blocker_combo == weighted_combo.combo {
+                if blocker_combo.intersects(&weighted_combo.combo) {
                     continue;
                 }
 
@@ -349,5 +352,21 @@ impl<'a> Equitizer<'a> {
         let eq = self.query_eq(lhs, rhs);
 
         (sub_prob, eq)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_query_sub_prob() {
+        let data_dir = "./data";
+        let hand_ranker = HandRanker::new(&data_dir).unwrap();
+        let mut equitizer = Equitizer::new(&hand_ranker).unwrap();
+        let aa = PureRange::from("AA");
+        let aa_kk = PureRange::from("AA,KK");
+        let eq = equitizer.query_sub_prob(&aa, &aa, &aa_kk);
+        assert_eq!(eq, 1.0 / 7.0);
     }
 }

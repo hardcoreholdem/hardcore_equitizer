@@ -444,7 +444,7 @@ impl MixedRange {
         self.weighted_combos.iter().map(|wc| wc.combo)
     }
 
-    pub fn contain_combo(&self, combo: &Combo) -> bool {
+    pub fn contains_combo(&self, combo: &Combo) -> bool {
         self.weighted_combos.iter().any(|wc| wc.combo == *combo)
     }
 }
