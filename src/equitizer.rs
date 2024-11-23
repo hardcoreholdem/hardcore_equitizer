@@ -300,12 +300,12 @@ impl<'a> Equitizer<'a> {
         first_res
     }
 
-    pub fn query_prob(&mut self, blocks: &PureRange, range: &impl Range) -> f64 {
+    pub fn query_prob(&mut self, blockers: &PureRange, range: &impl Range) -> f64 {
         const C_50_2: f64 = 50.0 * 49.0 / 2.0;
 
         let mut res = Vec::new();
 
-        for &blocker_combo in &blocks.combos {
+        for &blocker_combo in &blockers.combos {
             let mut sum_weights = 0.0;
             for weighted_combo in range.iter_weighted_combos() {
                 if blocker_combo == weighted_combo.combo {
