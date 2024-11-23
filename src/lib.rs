@@ -6,3 +6,4 @@ pub use equitizer::Equitizer;
 pub use hand_ranker::HandRanker;
 pub use types::MixedRange;
 pub use types::PureRange;
+pub use types::Range;
