@@ -240,7 +240,7 @@ impl HandRanker {
         for r in ranks {
             hash = hash * 13 + r.as_usize();
         }
-        self.offsuited7[hash].clone()
+        self.offsuited7[hash]
     }
 
     pub fn get7(&self, cards: [Card; 7]) -> HandRank {
@@ -277,6 +277,41 @@ impl HandRanker {
             return self.suited[suited_hash[s]].clone();
         } else {
             self.get7_offsuited(ranks)
+        }
+    }
+
+    pub fn get5_offsuited(&self, ranks: [Rank; 5]) -> HandRank {
+        let mut hash = 0;
+        for r in ranks {
+            hash = hash * 13 + r.as_usize();
+        }
+        self.offsuited5[hash]
+    }
+
+    pub fn get5(&self, cards: [Card; 5]) -> HandRank {
+        let bitand_suit_value = cards[0].suit().value
+            & cards[1].suit().value
+            & cards[2].suit().value
+            & cards[3].suit().value
+            & cards[4].suit().value;
+
+        if bitand_suit_value == 0 {
+            // offsuited
+            let ranks = [
+                cards[0].rank(),
+                cards[1].rank(),
+                cards[2].rank(),
+                cards[3].rank(),
+                cards[4].rank(),
+            ];
+            self.get5_offsuited(ranks)
+        } else {
+            // suited
+            let mut suited_hash = 0;
+            for i in 0..5 {
+                suited_hash |= 1 << cards[i].rank().as_usize();
+            }
+            self.suited[suited_hash]
         }
     }
 
