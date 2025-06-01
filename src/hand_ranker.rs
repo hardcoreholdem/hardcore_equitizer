@@ -166,6 +166,7 @@ const POW_13_7: usize = POW_13_6 * 13;
 
 pub struct HandRanker {
     suited: Vec<HandRank>,
+    offsuited5: Vec<HandRank>,
     offsuited7: Vec<HandRank>,
 }
 
@@ -219,6 +220,7 @@ impl HandRanker {
 
         let mut result = Self {
             suited: vec![HandRank::ERROR; 1 << 13],
+            offsuited5: vec![HandRank::ERROR; POW_13_5],
             offsuited7: vec![HandRank::ERROR; POW_13_7],
         };
 
@@ -423,8 +425,8 @@ impl HandRanker {
             offsuited_details.len()
         );
 
+        // two pair
         {
-            // two pair
             for rr1 in Rank::VALUE_2..=Rank::VALUE_A {
                 for rr0 in Rank::VALUE_2..rr1 {
                     for r in Rank::VALUE_2..=Rank::VALUE_A {
@@ -446,8 +448,8 @@ impl HandRanker {
             offsuited_details.len()
         );
 
+        // 三条
         {
-            // 三条
             for rrr_value in Rank::VALUE_2..=Rank::VALUE_A {
                 for r2_value in Rank::VALUE_2..=Rank::VALUE_A {
                     if r2_value == rrr_value {
@@ -489,8 +491,8 @@ impl HandRanker {
             offsuited_details.len()
         );
 
+        // 葫芦
         {
-            // full house
             for rrr_value in Rank::VALUE_2..=Rank::VALUE_A {
                 for rr_value in Rank::VALUE_2..=Rank::VALUE_A {
                     if rr_value == rrr_value {
@@ -504,8 +506,8 @@ impl HandRanker {
             }
         }
 
+        // 四条
         {
-            // 四条
             for rrrr in Rank::VALUE_2..=Rank::VALUE_A {
                 for r in Rank::VALUE_2..=Rank::VALUE_A {
                     if r == rrrr {
@@ -536,8 +538,24 @@ impl HandRanker {
 
         println!("finished process suited");
 
-        for (r01234_values, hand_rank) in offsuited_details {
+        for (mut r01234_values, hand_rank) in offsuited_details {
             println!("r01234={:?}", r01234_values);
+
+            {
+                r01234_values.sort();
+                loop {
+                    let mut hash5 = 0;
+                    for r_value in r01234_values {
+                        hash5 = hash5 * 13 + r_value;
+                    }
+                    self.offsuited5[hash5 as usize] = hand_rank;
+
+                    if !r01234_values.next_permutation() {
+                        break;
+                    }
+                }
+            }
+
             for r6_value in Rank::VALUE_2..=Rank::VALUE_A {
                 for r5_value in Rank::VALUE_2..=r6_value {
                     let mut r0123456_values = [
@@ -554,10 +572,10 @@ impl HandRanker {
                     loop {
                         let mut hash7 = 0;
                         for r_value in r0123456_values {
-                            hash7 = hash7 * 13 + (r_value as usize);
+                            hash7 = hash7 * 13 + r_value;
                         }
-                        self.offsuited7[hash7] =
-                            max(self.offsuited7[hash7].clone(), hand_rank.clone());
+                        self.offsuited7[hash7 as usize] =
+                            max(self.offsuited7[hash7 as usize], hand_rank);
 
                         if !r0123456_values.next_permutation() {
                             break;
@@ -579,8 +597,21 @@ impl HandRanker {
         let mut offsuited7_sum: i64 = 0;
         let mut suited_sum: i64 = 0;
 
+        // offsuited5
+        let mut offsuited5_sum: i64 = 0;
         {
-            // offsuited7
+            let filename = format!("{}/offsuited5.bin", data_dir);
+            let mut fout = File::create(filename).unwrap();
+
+            for (i, v) in self.offsuited5.iter().enumerate() {
+                let v = v.value() as i16;
+                fout.write_all(v.to_le_bytes().as_slice()).unwrap();
+                offsuited5_sum += (v as i64) * (i as i64);
+            }
+        }
+
+        // offsuited7
+        {
             let filename = format!("{}/offsuited7.bin", data_dir);
             let mut fout = File::create(filename).unwrap();
 
@@ -591,8 +622,8 @@ impl HandRanker {
             }
         }
 
+        // suited
         {
-            // suited
             let filename = format!("{}/suited.bin", data_dir);
             let mut fout = File::create(filename).unwrap();
 
@@ -604,8 +635,8 @@ impl HandRanker {
         }
 
         println!(
-            "offsuited7_sum={} suited_sum={}",
-            offsuited7_sum, suited_sum
+            "offsuited5_sum={} offsuited7_sum={} suited_sum={}",
+            offsuited5_sum, offsuited7_sum, suited_sum
         );
 
         Ok(())

@@ -1,29 +1,31 @@
 use std::ops::Add;
 
-#[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
-pub struct HandRank(i32);
+#[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Copy)]
+pub struct HandRank {
+    value: i32,
+}
 
 impl Add<i32> for HandRank {
     type Output = Self;
 
     fn add(self, rhs: i32) -> Self::Output {
-        Self(self.0 + rhs)
+        Self::from_value(self.value + rhs)
     }
 }
 
 impl HandRank {
-    pub const ERROR: Self = Self(-1);
-    pub const NUM: Self = Self(7462);
+    pub const ERROR: Self = Self { value: -1 };
+    pub const NUM: Self = Self { value: 7462 };
 
     pub fn from_value(value: i32) -> Self {
-        Self(value)
+        Self { value }
     }
 
     pub fn value(&self) -> i32 {
-        self.0
+        self.value
     }
 
     pub fn inc(&mut self) {
-        self.0 += 1;
+        self.value += 1;
     }
 }
