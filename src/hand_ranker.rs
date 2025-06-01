@@ -648,11 +648,32 @@ impl HandRanker {
             return Err(());
         }
 
-        let mut offsuited7_sum: i64 = 0;
-        let mut suited_sum: i64 = 0;
-
+        // offsuited5
         {
-            // offsuited7
+            let mut offsuited5_sum: i64 = 0;
+
+            let filename = format!("{}/offsuited5.bin", data_dir);
+            let fin = File::open(filename).map_err(|_| ())?;
+            let mut reader: BufReader<File> = BufReader::new(fin);
+
+            for i in 0..self.offsuited5.len() {
+                let mut v = [0; 2];
+                reader.read_exact(&mut v).unwrap();
+                let v = i16::from_le_bytes(v);
+                self.offsuited5[i] = HandRank::from_value(v as i32);
+                offsuited5_sum += (v as i64) * (i as i64);
+            }
+
+            if offsuited5_sum != 156362476943832 {
+                println!("checksum_failed offsuited5_sum={}", offsuited5_sum);
+                return Err(());
+            }
+        }
+
+        // offsuited7
+        {
+            let mut offsuited7_sum: i64 = 0;
+
             let filename = format!("{}/offsuited7.bin", data_dir);
             let fin = File::open(filename).map_err(|_| ())?;
             let mut reader: BufReader<File> = BufReader::new(fin);
@@ -664,10 +685,17 @@ impl HandRanker {
                 self.offsuited7[i] = HandRank::from_value(v as i32);
                 offsuited7_sum += (v as i64) * (i as i64);
             }
+
+            if offsuited7_sum != 7479833936848761882 {
+                println!("checksum_failed offsuited7_sum={}", offsuited7_sum);
+                return Err(());
+            }
         }
 
+        // suited
         {
-            // suited
+            let mut suited_sum: i64 = 0;
+
             let filename = format!("{}/suited.bin", data_dir);
             let fin = File::open(filename).map_err(|_| ())?;
             let mut reader: BufReader<File> = BufReader::new(fin);
@@ -679,14 +707,11 @@ impl HandRanker {
                 self.suited[i] = HandRank::from_value(v as i32);
                 suited_sum += (v as i64) * (i as i64);
             }
-        }
 
-        if offsuited7_sum != 7479833936848761882 || suited_sum != 217636760248 {
-            println!(
-                "checksum_failed offsuited7_sum={} suited_sum={}",
-                offsuited7_sum, suited_sum
-            );
-            return Err(());
+            if suited_sum != 217636760248 {
+                println!("checksum_failed suited_sum={}", suited_sum);
+                return Err(());
+            }
         }
 
         Ok(())
